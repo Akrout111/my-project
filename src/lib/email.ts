@@ -1,5 +1,16 @@
 import { Resend } from "resend";
+import { render } from "@react-email/components";
 import { logger } from "@/lib/logger";
+import { BookingConfirmationEmail } from "../emails/templates/booking-confirmation";
+import { BookingCancelledEmail } from "../emails/templates/booking-cancelled";
+import { PaymentFailedEmail } from "../emails/templates/payment-failed";
+import { PaymentSuccessEmail } from "../emails/templates/payment-success";
+import { EventReminderEmail } from "../emails/templates/event-reminder";
+import { RefundProcessedEmail } from "../emails/templates/refund-processed";
+import { TicketUsedEmail } from "../emails/templates/ticket-used";
+import { NewBookingNotificationEmail } from "../emails/templates/new-booking-notification";
+import { NewReviewNotificationEmail } from "../emails/templates/new-review-notification";
+import { sanitizeUrl } from "@/lib/sanitize";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -10,10 +21,9 @@ interface EmailOptions {
 }
 
 /**
- * يرسل بريد إلكتروني عبر Resend
+ * Send email via Resend
  */
 export async function sendEmail({ to, subject, html }: EmailOptions): Promise<boolean> {
-  // في وضع التطوير بدون Resend API key، سجّل فقط
   if (!process.env.RESEND_API_KEY || process.env.RESEND_API_KEY === "re_xxxxxxxx") {
     logger.info("email", "MOCK email", { to, subject });
     return true;
@@ -40,7 +50,7 @@ export async function sendEmail({ to, subject, html }: EmailOptions): Promise<bo
 }
 
 /**
- * يرسل بريد تأكيد الحجز
+ * Send booking confirmation email using React Email template
  */
 export async function sendBookingConfirmationEmail(params: {
   to: string;
@@ -56,238 +66,314 @@ export async function sendBookingConfirmationEmail(params: {
   appUrl: string;
   locale?: string;
 }): Promise<boolean> {
-  const {
-    to,
-    attendeeName,
-    bookingNumber,
-    eventTitle,
-    eventDate,
-    eventTime,
-    venueName,
-    ticketCount,
-    totalAmount,
-    bookingId,
-    appUrl,
-    locale = "ar",
-  } = params;
-
-  const isAr = locale === "ar";
-
-  const html = isAr
-    ? `
-    <!DOCTYPE html>
-    <html dir="rtl" lang="ar">
-    <head>
-      <meta charset="UTF-8">
-      <style>
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; direction: rtl; background: #f5f5f5; margin: 0; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; }
-        .header { background: linear-gradient(135deg, #1a56db, #3b82f6); color: white; padding: 30px; text-align: center; }
-        .header h1 { margin: 0; font-size: 24px; }
-        .content { padding: 30px; }
-        .info-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee; }
-        .info-label { color: #666; font-size: 14px; }
-        .info-value { font-weight: 600; font-size: 14px; }
-        .amount { font-size: 28px; font-weight: bold; color: #1a56db; text-align: center; margin: 20px 0; }
-        .cta { display: block; width: fit-content; margin: 20px auto; padding: 12px 30px; background: #1a56db; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; }
-        .footer { text-align: center; padding: 20px; color: #999; font-size: 12px; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1>✅ تم تأكيد حجزك!</h1>
-        </div>
-        <div class="content">
-          <p>مرحباً ${attendeeName}،</p>
-          <p>تم تأكيد حجزك بنجاح. إليك تفاصيل الحجز:</p>
-
-          <div class="info-row">
-            <span class="info-label">رقم الحجز</span>
-            <span class="info-value">${bookingNumber}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">الفعالية</span>
-            <span class="info-value">${eventTitle}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">التاريخ</span>
-            <span class="info-value">${eventDate}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">الوقت</span>
-            <span class="info-value">${eventTime}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">المكان</span>
-            <span class="info-value">${venueName}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">عدد التذاكر</span>
-            <span class="info-value">${ticketCount}</span>
-          </div>
-
-          <div class="amount">${totalAmount} د.ك</div>
-
-          <a href="${appUrl}/ar/bookings/${bookingId}" class="cta">عرض التذاكر و QR Codes</a>
-        </div>
-        <div class="footer">
-          منصة فعاليات الكويت — noreply@kuwaitevents.com
-        </div>
-      </div>
-    </body>
-    </html>
-  `
-    : `
-    <!DOCTYPE html>
-    <html dir="ltr" lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <style>
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; direction: ltr; background: #f5f5f5; margin: 0; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; }
-        .header { background: linear-gradient(135deg, #1a56db, #3b82f6); color: white; padding: 30px; text-align: center; }
-        .header h1 { margin: 0; font-size: 24px; }
-        .content { padding: 30px; }
-        .info-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee; }
-        .info-label { color: #666; font-size: 14px; }
-        .info-value { font-weight: 600; font-size: 14px; }
-        .amount { font-size: 28px; font-weight: bold; color: #1a56db; text-align: center; margin: 20px 0; }
-        .cta { display: block; width: fit-content; margin: 20px auto; padding: 12px 30px; background: #1a56db; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; }
-        .footer { text-align: center; padding: 20px; color: #999; font-size: 12px; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1>✅ Booking Confirmed!</h1>
-        </div>
-        <div class="content">
-          <p>Hello ${attendeeName},</p>
-          <p>Your booking has been confirmed successfully. Here are your booking details:</p>
-
-          <div class="info-row">
-            <span class="info-label">Booking No.</span>
-            <span class="info-value">${bookingNumber}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Event</span>
-            <span class="info-value">${eventTitle}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Date</span>
-            <span class="info-value">${eventDate}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Time</span>
-            <span class="info-value">${eventTime}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Venue</span>
-            <span class="info-value">${venueName}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Tickets</span>
-            <span class="info-value">${ticketCount}</span>
-          </div>
-
-          <div class="amount">${totalAmount} KWD</div>
-
-          <a href="${appUrl}/en/bookings/${bookingId}" class="cta">View Tickets & QR Codes</a>
-        </div>
-        <div class="footer">
-          Kuwait Events Platform — noreply@kuwaitevents.com
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
+  const html = await render(
+    BookingConfirmationEmail({
+      data: {
+        attendeeName: params.attendeeName,
+        bookingNumber: params.bookingNumber,
+        eventTitle: params.eventTitle,
+        eventDate: params.eventDate,
+        eventTime: params.eventTime,
+        venueName: params.venueName,
+        ticketCount: params.ticketCount,
+        totalAmount: params.totalAmount,
+        bookingId: params.bookingId,
+        appUrl: sanitizeUrl(params.appUrl),
+      },
+    })
+  );
 
   return sendEmail({
-    to,
-    subject: isAr
-      ? `تأكيد الحجز ${bookingNumber} — ${eventTitle}`
-      : `Booking Confirmed ${bookingNumber} — ${eventTitle}`,
+    to: params.to,
+    subject: params.locale === "ar"
+      ? `تأكيد الحجز ${params.bookingNumber} — ${params.eventTitle}`
+      : `Booking Confirmed ${params.bookingNumber} — ${params.eventTitle}`,
     html,
   });
 }
 
 /**
- * يرسل بريد فشل الدفع
+ * Send payment failure email using React Email template
  */
 export async function sendPaymentFailureEmail(params: {
   to: string;
   attendeeName: string;
   bookingNumber: string;
   eventTitle: string;
+  bookingId?: string;
   locale?: string;
 }): Promise<boolean> {
-  const { locale = "ar" } = params;
-  const isAr = locale === "ar";
-
-  const html = isAr
-    ? `
-    <!DOCTYPE html>
-    <html dir="rtl" lang="ar">
-    <head>
-      <meta charset="UTF-8">
-      <style>
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; direction: rtl; background: #f5f5f5; margin: 0; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; }
-        .header { background: linear-gradient(135deg, #dc2626, #ef4444); color: white; padding: 30px; text-align: center; }
-        .content { padding: 30px; text-align: center; }
-        .footer { text-align: center; padding: 20px; color: #999; font-size: 12px; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1>❌ فشل عملية الدفع</h1>
-        </div>
-        <div class="content">
-          <p>مرحباً ${params.attendeeName}،</p>
-          <p>لم تتم عملية الدفع للحجز <strong>${params.bookingNumber}</strong> للفعالية <strong>${params.eventTitle}</strong>.</p>
-          <p>يمكنك إعادة المحاولة من صفحة الحجوزات.</p>
-        </div>
-        <div class="footer">منصة فعاليات الكويت</div>
-      </div>
-    </body>
-    </html>
-  `
-    : `
-    <!DOCTYPE html>
-    <html dir="ltr" lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <style>
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; direction: ltr; background: #f5f5f5; margin: 0; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; }
-        .header { background: linear-gradient(135deg, #dc2626, #ef4444); color: white; padding: 30px; text-align: center; }
-        .content { padding: 30px; text-align: center; }
-        .footer { text-align: center; padding: 20px; color: #999; font-size: 12px; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1>❌ Payment Failed</h1>
-        </div>
-        <div class="content">
-          <p>Hello ${params.attendeeName},</p>
-          <p>The payment for booking <strong>${params.bookingNumber}</strong> for the event <strong>${params.eventTitle}</strong> was not completed.</p>
-          <p>You can retry from your bookings page.</p>
-        </div>
-        <div class="footer">Kuwait Events Platform</div>
-      </div>
-    </body>
-    </html>
-  `;
+  const html = await render(
+    PaymentFailedEmail({
+      data: {
+        attendeeName: params.attendeeName,
+        bookingNumber: params.bookingNumber,
+        eventTitle: params.eventTitle,
+        bookingId: params.bookingId ?? "",
+      },
+    })
+  );
 
   return sendEmail({
     to: params.to,
-    subject: isAr
+    subject: params.locale === "ar"
       ? `فشل الدفع للحجز ${params.bookingNumber}`
       : `Payment Failed for Booking ${params.bookingNumber}`,
+    html,
+  });
+}
+
+/**
+ * Send payment success email using React Email template
+ */
+export async function sendPaymentSuccessEmail(params: {
+  to: string;
+  attendeeName: string;
+  bookingNumber: string;
+  eventTitle: string;
+  amount: string;
+  transactionId: string;
+  bookingId: string;
+  appUrl?: string;
+  locale?: string;
+}): Promise<boolean> {
+  const html = await render(
+    PaymentSuccessEmail({
+      data: {
+        attendeeName: params.attendeeName,
+        bookingNumber: params.bookingNumber,
+        eventTitle: params.eventTitle,
+        amount: params.amount,
+        transactionId: params.transactionId,
+        bookingId: params.bookingId,
+        appUrl: params.appUrl ? sanitizeUrl(params.appUrl) : undefined,
+      },
+    })
+  );
+
+  return sendEmail({
+    to: params.to,
+    subject: params.locale === "ar"
+      ? `تم الدفع بنجاح — ${params.bookingNumber}`
+      : `Payment Successful — ${params.bookingNumber}`,
+    html,
+  });
+}
+
+/**
+ * Send event reminder email using React Email template
+ */
+export async function sendEventReminderEmail(params: {
+  to: string;
+  attendeeName: string;
+  eventTitle: string;
+  eventDate: string;
+  eventTime: string;
+  venueName: string;
+  bookingId: string;
+  appUrl?: string;
+  locale?: string;
+}): Promise<boolean> {
+  const html = await render(
+    EventReminderEmail({
+      data: {
+        attendeeName: params.attendeeName,
+        eventTitle: params.eventTitle,
+        eventDate: params.eventDate,
+        eventTime: params.eventTime,
+        venueName: params.venueName,
+        bookingId: params.bookingId,
+        appUrl: params.appUrl ? sanitizeUrl(params.appUrl) : undefined,
+      },
+    })
+  );
+
+  return sendEmail({
+    to: params.to,
+    subject: params.locale === "ar"
+      ? `تذكير: ${params.eventTitle} غداً`
+      : `Reminder: ${params.eventTitle} tomorrow`,
+    html,
+  });
+}
+
+/**
+ * Send refund processed email using React Email template
+ */
+export async function sendRefundProcessedEmail(params: {
+  to: string;
+  attendeeName: string;
+  bookingNumber: string;
+  refundAmount: string;
+  reason?: string;
+  refundTimeline?: string;
+  appUrl?: string;
+  locale?: string;
+}): Promise<boolean> {
+  const html = await render(
+    RefundProcessedEmail({
+      data: {
+        attendeeName: params.attendeeName,
+        bookingNumber: params.bookingNumber,
+        refundAmount: params.refundAmount,
+        reason: params.reason,
+        refundTimeline: params.refundTimeline,
+        appUrl: params.appUrl ? sanitizeUrl(params.appUrl) : undefined,
+      },
+    })
+  );
+
+  return sendEmail({
+    to: params.to,
+    subject: params.locale === "ar"
+      ? `تم استرداد المبلغ — ${params.bookingNumber}`
+      : `Refund Processed — ${params.bookingNumber}`,
+    html,
+  });
+}
+
+/**
+ * Send booking cancelled email using React Email template
+ */
+export async function sendBookingCancelledEmail(params: {
+  to: string;
+  attendeeName: string;
+  bookingNumber: string;
+  eventTitle: string;
+  refundAmount?: string;
+  refundTimeline?: string;
+  appUrl?: string;
+  locale?: string;
+}): Promise<boolean> {
+  const html = await render(
+    BookingCancelledEmail({
+      data: {
+        attendeeName: params.attendeeName,
+        bookingNumber: params.bookingNumber,
+        eventTitle: params.eventTitle,
+        refundAmount: params.refundAmount,
+        refundTimeline: params.refundTimeline,
+        appUrl: params.appUrl ? sanitizeUrl(params.appUrl) : undefined,
+      },
+    })
+  );
+
+  return sendEmail({
+    to: params.to,
+    subject: params.locale === "ar"
+      ? `تم إلغاء الحجز ${params.bookingNumber}`
+      : `Booking Cancelled ${params.bookingNumber}`,
+    html,
+  });
+}
+
+/**
+ * Send ticket used email using React Email template
+ */
+export async function sendTicketUsedEmail(params: {
+  to: string;
+  ticketNumber: string;
+  eventTitleAr: string;
+  eventTitleEn: string;
+  attendeeName?: string;
+  usedAt: string;
+  appUrl?: string;
+  locale?: string;
+}): Promise<boolean> {
+  const html = await render(
+    TicketUsedEmail({
+      data: {
+        ticketNumber: params.ticketNumber,
+        eventTitleAr: params.eventTitleAr,
+        eventTitleEn: params.eventTitleEn,
+        attendeeName: params.attendeeName,
+        usedAt: params.usedAt,
+        appUrl: params.appUrl ? sanitizeUrl(params.appUrl) : undefined,
+      },
+    })
+  );
+
+  return sendEmail({
+    to: params.to,
+    subject: params.locale === "ar"
+      ? `تم استخدام التذكرة — ${params.ticketNumber}`
+      : `Ticket Used — ${params.ticketNumber}`,
+    html,
+  });
+}
+
+/**
+ * Send new booking notification to organizer using React Email template
+ */
+export async function sendNewBookingNotificationEmail(params: {
+  to: string;
+  organizerName: string;
+  bookingNumber: string;
+  attendeeName: string;
+  eventTitle: string;
+  ticketCount: number;
+  amount: string;
+  bookingId: string;
+  appUrl?: string;
+  locale?: string;
+}): Promise<boolean> {
+  const html = await render(
+    NewBookingNotificationEmail({
+      data: {
+        organizerName: params.organizerName,
+        bookingNumber: params.bookingNumber,
+        attendeeName: params.attendeeName,
+        eventTitle: params.eventTitle,
+        ticketCount: params.ticketCount,
+        amount: params.amount,
+        bookingId: params.bookingId,
+        appUrl: params.appUrl ? sanitizeUrl(params.appUrl) : undefined,
+      },
+    })
+  );
+
+  return sendEmail({
+    to: params.to,
+    subject: params.locale === "ar"
+      ? `حجز جديد — ${params.eventTitle}`
+      : `New Booking — ${params.eventTitle}`,
+    html,
+  });
+}
+
+/**
+ * Send new review notification to organizer using React Email template
+ */
+export async function sendNewReviewNotificationEmail(params: {
+  to: string;
+  organizerName: string;
+  reviewerName: string;
+  eventTitle: string;
+  rating: number;
+  comment?: string;
+  reviewId: string;
+  appUrl?: string;
+  locale?: string;
+}): Promise<boolean> {
+  const html = await render(
+    NewReviewNotificationEmail({
+      data: {
+        organizerName: params.organizerName,
+        reviewerName: params.reviewerName,
+        eventTitle: params.eventTitle,
+        rating: params.rating,
+        comment: params.comment,
+        reviewId: params.reviewId,
+        appUrl: params.appUrl ? sanitizeUrl(params.appUrl) : undefined,
+      },
+    })
+  );
+
+  return sendEmail({
+    to: params.to,
+    subject: params.locale === "ar"
+      ? `تقييم جديد على ${params.eventTitle}`
+      : `New Review on ${params.eventTitle}`,
     html,
   });
 }

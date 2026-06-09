@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { NotificationType } from "@/lib/notifications/types";
-import { sendEmail } from "@/lib/email";
+import { sendEventReminderEmail } from "@/lib/email";
 import { successResponse, errorResponse } from "@/lib/api-response";
 import { createHmac } from "crypto";
 

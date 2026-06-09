@@ -84,7 +84,6 @@ export async function POST(req: Request) {
       });
 
       // أنشئ التذاكر + حدّث quantitySold مع التحقق من التوفر
-      const createdTickets: Array<{ id: string; ticketNumber: string }> = [];
       for (const record of ticketRecords) {
         // تحقق من التوفر داخل transaction بشكل صحيح
         const tier = await tx.ticketTier.findUnique({
@@ -102,20 +101,17 @@ export async function POST(req: Request) {
           data: { quantitySold: { increment: record.quantity } },
         });
 
-        // أنشئ التذاكر الفردية
-        for (let i = 0; i < record.quantity; i++) {
-          const ticket = await tx.ticket.create({
-            data: {
-              ticketNumber: generateTicketNumber(),
-              ticketTierId: record.ticketTierId,
-              bookingId: newBooking.id,
-            },
-          });
-          createdTickets.push(ticket);
-        }
+        // أنشئ التذاكر باستخدام batch insert (بدلاً من N individual inserts)
+        await tx.ticket.createMany({
+          data: Array.from({ length: record.quantity }, () => ({
+            ticketNumber: generateTicketNumber(),
+            ticketTierId: record.ticketTierId,
+            bookingId: newBooking.id,
+          })),
+        });
       }
 
-      return { ...newBooking, tickets: createdTickets };
+      return newBooking;
     });
 
     // 7. أرجع النتيجة مع معلومات انتهاء الصلاحية
