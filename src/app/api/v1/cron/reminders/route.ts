@@ -134,19 +134,16 @@ export async function GET(request: Request) {
           day: "numeric",
         });
 
-        await sendEmail({
+        await sendEventReminderEmail({
           to: booking.attendeeEmail,
-          subject: `تذكير: ${booking.event.titleAr} غداً!`,
-          html: `
-            <div dir="rtl" style="font-family: 'Segoe UI', Tahoma, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2>مرحباً ${booking.attendeeName}،</h2>
-              <p>هذا تذكير بأن الفعالية <strong>${booking.event.titleAr}</strong> ستبدأ قريباً!</p>
-              <p>📅 ${eventDate}</p>
-              <p>🕐 ${booking.event.startTime}</p>
-              ${booking.event.venue ? `<p>📍 ${booking.event.venue.nameAr}</p>` : ""}
-              <p>رقم الحجز: <strong>${booking.bookingNumber}</strong></p>
-            </div>
-          `,
+          attendeeName: booking.attendeeName,
+          eventTitle: booking.event.titleAr,
+          eventDate,
+          eventTime: booking.event.startTime,
+          venueName: booking.event.venue?.nameAr ?? "غير محدد",
+          bookingId: booking.id,
+          appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "https://kuwaitevents.com",
+          locale: "ar",
         });
       } catch (emailError: unknown) {
         console.error("[Cron Reminders] Failed to send reminder email:", emailError);

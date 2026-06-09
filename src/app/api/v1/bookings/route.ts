@@ -114,8 +114,13 @@ export async function POST(req: Request) {
       return newBooking;
     });
 
-    // 7. أرجع النتيجة مع معلومات انتهاء الصلاحية
+    // 7. Fetch created tickets and return result
     const expiresAt = getBookingExpiry();
+
+    const createdTickets = await db.ticket.findMany({
+      where: { bookingId: booking.id },
+      select: { id: true, ticketNumber: true },
+    });
 
     return successResponse(
       {
@@ -129,7 +134,7 @@ export async function POST(req: Request) {
             id: event.id,
             titleAr: event.titleAr,
           },
-          tickets: booking.tickets.map((t: { id: string; ticketNumber: string }) => ({
+          tickets: createdTickets.map((t) => ({
             id: t.id,
             ticketNumber: t.ticketNumber,
           })),
