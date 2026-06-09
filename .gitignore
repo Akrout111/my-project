@@ -54,3 +54,22 @@ server.log
 /skills/
 # Upload / reference docs (not for repo)
 upload/
+
+# AI development artifacts
+agent-ctx/
+
+# Screenshots
+screenshots/
+
+# Database files
+db/*.db
+db/*.db-journal
+
+# Artifacts
+--timeout
+claude-analysis-bundle.md
+VEO-3.1-PROMPTS.md
+download/
+homepage-final.png
+homepage-screenshot.png
+screenshot-*.png

@@ -6,7 +6,7 @@ import { NextRequest } from "next/server";
 
 export async function POST(req: NextRequest) {
   // Rate limiting
-  const rateLimitResult = checkRateLimit(getClientIdentifier(req), { limit: 5, windowSeconds: 60 });
+  const rateLimitResult = await checkRateLimit(getClientIdentifier(req), { limit: 5, windowSeconds: 60 });
   if (!rateLimitResult.allowed) {
     return errorResponse("RATE_LIMITED", "Too many requests. Please try again later.", undefined, 429);
   }
