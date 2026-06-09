@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
-import { requireRole } from "@/lib/clerk";
+import { requireRole } from "@/lib/auth-server";
 import { successResponse, errorResponse } from "@/lib/api-response";
+import { logger } from "@/lib/logger";
 
 // GET /api/v1/tickets/history?eventId=xxx — Recent validation history
 export async function GET(req: NextRequest) {
@@ -93,7 +94,7 @@ export async function GET(req: NextRequest) {
         403
       );
     }
-    console.error("Validation history error:", error);
+    logger.error("ticket-history", "Validation history error", error);
     return errorResponse("INTERNAL_ERROR", "خطأ داخلي", undefined, 500);
   }
 }

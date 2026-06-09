@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
-import { requireRole } from "@/lib/clerk";
+import { requireRole } from "@/lib/auth-server";
 import { successResponse, errorResponse } from "@/lib/api-response";
+import { logger } from "@/lib/logger";
 
 // GET /api/v1/tickets/stats?eventId=xxx — Ticket validation stats for an event
 export async function GET(req: NextRequest) {
@@ -106,7 +107,7 @@ export async function GET(req: NextRequest) {
         403
       );
     }
-    console.error("Ticket stats error:", error);
+    logger.error("ticket-stats", "Ticket stats error", error);
     return errorResponse("INTERNAL_ERROR", "خطأ داخلي", undefined, 500);
   }
 }

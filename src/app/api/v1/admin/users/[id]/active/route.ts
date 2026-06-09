@@ -1,8 +1,10 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
-import { requireRole } from "@/lib/clerk";
+import { requireRole } from "@/lib/auth-server";
 import { successResponse, errorResponse } from "@/lib/api-response";
 import { toggleUserActiveSchema } from "@/lib/validators/admin-schema";
+import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
 
 // PATCH /api/v1/admin/users/:id/active — Activate/deactivate user (admin only)
 export async function PATCH(
@@ -10,6 +12,12 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Rate limit check
+    const rateLimitResult = checkRateLimit(getClientIdentifier(req), { limit: 30, windowSeconds: 60 });
+    if (!rateLimitResult.allowed) {
+      return errorResponse("RATE_LIMITED", "Too many requests. Please try again later.", undefined, 429);
+    }
+
     const admin = await requireRole(["ADMIN"]);
     const { id } = await params;
 
@@ -73,7 +81,7 @@ export async function PATCH(
         await client.users.banUser(user.clerkId);
       }
     } catch (clerkError: unknown) {
-      console.error("Failed to update Clerk ban status:", clerkError);
+      logger.error("toggle-user-active", "Failed to update Clerk ban status", clerkError);
     }
 
     return successResponse(
@@ -87,7 +95,7 @@ export async function PATCH(
     if (error instanceof Error && error.message.includes("FORBIDDEN")) {
       return errorResponse("FORBIDDEN", "صلاحيات غير كافية", undefined, 403);
     }
-    console.error("Toggle user active error:", error);
+    logger.error("toggle-user-active", "Toggle user active error", error);
     return errorResponse("INTERNAL_ERROR", "خطأ داخلي", undefined, 500);
   }
 }

@@ -1,8 +1,9 @@
-import { getCurrentUser } from "@/lib/clerk";
+import { getCurrentUser } from "@/lib/auth-server";
 import { db } from "@/lib/db";
 import { successResponse, errorResponse } from "@/lib/api-response";
 import { userUpdateSchema } from "@/lib/validators/user-schema";
 import { NextRequest } from "next/server";
+import { logger } from "@/lib/logger";
 
 export async function GET() {
   try {
@@ -15,7 +16,7 @@ export async function GET() {
       "تم جلب بيانات المستخدم"
     );
   } catch (error: unknown) {
-    console.error("Error fetching user:", error);
+    logger.error("users-me", "Error fetching user", error);
     return errorResponse("INTERNAL_ERROR", "حدث خطأ في جلب بيانات المستخدم", undefined, 500);
   }
 }
@@ -46,7 +47,7 @@ export async function PATCH(req: NextRequest) {
 
     return successResponse(updatedUser, "تم تحديث الملف الشخصي");
   } catch (error: unknown) {
-    console.error("Error updating user profile:", error);
+    logger.error("users-me", "Error updating user profile", error);
     return errorResponse("INTERNAL_ERROR", "حدث خطأ في تحديث الملف الشخصي", undefined, 500);
   }
 }

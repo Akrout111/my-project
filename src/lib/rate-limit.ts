@@ -1,26 +1,24 @@
 /**
- * Rate limiting with Upstash Redis (production) and in-memory fallback (development).
- * Supports both distributed and single-instance deployments.
+ * محدد معدل بسيط في الذاكرة
+ * Simple in-memory rate limiter.
+ * For production, replace with Redis-based (Upstash) rate limiting.
+ * This implementation resets on server restart, which is acceptable for now.
  */
 
-import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
-
-// Development fallback - simple in-memory
-interface InMemoryEntry {
+interface RateLimitEntry {
   count: number;
   resetTime: number;
 }
 
-const memoryStore = new Map<string, InMemoryEntry>();
+const store = new Map<string, RateLimitEntry>();
 
 // Cleanup old entries every 5 minutes
 if (typeof setInterval !== "undefined") {
   setInterval(() => {
     const now = Date.now();
-    for (const [key, entry] of memoryStore.entries()) {
+    for (const [key, entry] of store.entries()) {
       if (now > entry.resetTime) {
-        memoryStore.delete(key);
+        store.delete(key);
       }
     }
   }, 5 * 60 * 1000);
@@ -36,55 +34,18 @@ const DEFAULT_OPTIONS: RateLimitOptions = {
   windowSeconds: 60,
 };
 
-interface RateLimitResult {
-  allowed: boolean;
-  remaining: number;
-  resetAt: number;
-}
-
-let upstashRatelimit: Ratelimit | null = null;
-
-// Initialize Upstash rate limiter if credentials are available
-if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-  const redis = new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN,
-  });
-
-  upstashRatelimit = new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(DEFAULT_OPTIONS.limit, `${DEFAULT_OPTIONS.windowSeconds} s`),
-    analytics: true,
-  });
-}
-
-/**
- * Check rate limit for a given identifier.
- * Uses Upstash Redis in production, in-memory fallback for development.
- */
-export async function checkRateLimit(
+export function checkRateLimit(
   identifier: string,
   options: Partial<RateLimitOptions> = {}
-): Promise<RateLimitResult> {
+): { allowed: boolean; remaining: number; resetAt: number } {
   const { limit, windowSeconds } = { ...DEFAULT_OPTIONS, ...options };
-
-  // Use Upstash if available
-  if (upstashRatelimit) {
-    const result = await upstashRatelimit.limit(identifier);
-    return {
-      allowed: result.success,
-      remaining: result.remaining,
-      resetAt: result.reset,
-    };
-  }
-
-  // In-memory fallback
   const now = Date.now();
   const resetTime = now + windowSeconds * 1000;
-  const entry = memoryStore.get(identifier);
+
+  const entry = store.get(identifier);
 
   if (!entry || now > entry.resetTime) {
-    memoryStore.set(identifier, { count: 1, resetTime });
+    store.set(identifier, { count: 1, resetTime });
     return { allowed: true, remaining: limit - 1, resetAt: resetTime };
   }
 

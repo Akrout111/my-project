@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { successResponse, errorResponse } from "@/lib/api-response";
+import { logger } from "@/lib/logger";
 
 export async function GET() {
   try {
@@ -19,7 +20,7 @@ export async function GET() {
 
     return successResponse({ venues: venuesWithCount }, "تم جلب الأماكن");
   } catch (error: unknown) {
-    console.error("Error fetching venues:", error);
+    logger.error("venues", "Error fetching venues", error);
     return errorResponse("INTERNAL_ERROR", "حدث خطأ في جلب الأماكن", undefined, 500);
   }
 }

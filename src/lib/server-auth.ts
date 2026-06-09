@@ -4,8 +4,7 @@
  * Use this in server components and API routes to get the current user.
  */
 
-import { resolveUserId } from "@/lib/auth-utils";
-import { db } from "@/lib/db";
+import { resolveUserId, findUserByIdentifier } from "@/lib/auth-utils";
 
 /**
  * Get the current user ID from either Clerk or custom JWT auth.
@@ -18,30 +17,20 @@ export async function getServerUserId(): Promise<string | null> {
 /**
  * Get the current authenticated user from either Clerk or custom JWT auth.
  * Returns the full user record or null if not authenticated / not found.
- * Uses a single OR query instead of two sequential findUnique calls.
  */
 export async function getServerUser() {
   const userId = await resolveUserId();
   if (!userId) return null;
 
-  const user = await db.user.findFirst({
-    where: {
-      OR: [{ clerkId: userId }, { id: userId }],
-      isActive: true,
-      deletedAt: null,
-    },
-    select: {
-      id: true,
-      clerkId: true,
-      name: true,
-      email: true,
-      role: true,
-      avatarUrl: true,
-      phone: true,
-    },
+  return findUserByIdentifier(userId, {
+    id: true,
+    clerkId: true,
+    name: true,
+    email: true,
+    role: true,
+    avatarUrl: true,
+    phone: true,
   });
-
-  return user;
 }
 
 /**

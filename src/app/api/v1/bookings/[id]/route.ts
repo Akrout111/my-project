@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { successResponse, errorResponse } from "@/lib/api-response";
-import { getCurrentUser } from "@/lib/clerk";
+import { getCurrentUser } from "@/lib/auth-server";
 import { logger } from "@/lib/logger";
 
 /**

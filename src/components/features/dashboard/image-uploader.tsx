@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useUploadFile } from "@/hooks/use-upload";
 import { Button } from "@/components/ui/button";
 import { Upload, X, Loader2 } from "lucide-react";
+import { logger } from "@/lib/logger";
 
 interface ImageUploaderProps {
   value?: string;
@@ -36,7 +37,7 @@ export function ImageUploader({
         const result = await upload.mutateAsync({ file, folder });
         onChange(result.publicUrl);
       } catch (error: unknown) {
-        console.error("Upload error:", error);
+        logger.error("image-uploader", "Upload error", error);
       }
     },
     [upload, folder, onChange, t]

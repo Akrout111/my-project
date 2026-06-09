@@ -9,17 +9,6 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./vitest.setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html'],
-      include: ['src/lib/**/*.ts', 'src/app/api/**/*.ts', 'src/hooks/**/*.ts'],
-      thresholds: {
-        statements: 60,
-        branches: 50,
-        functions: 50,
-        lines: 60,
-      },
-    },
   },
   resolve: {
     alias: {

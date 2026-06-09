@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useUpdateEvent } from "@/hooks/use-event-mutations";
 import { updateEventSchema, type UpdateEventInput } from "@/lib/validators/event-schema";
 import type { CreateEventInput } from "@/lib/validators/event-schema";
+import { logger } from "@/lib/logger";
 import { ImageUploader } from "@/components/features/dashboard/image-uploader";
 import { TicketTierBuilder } from "@/components/features/dashboard/ticket-tier-builder";
 import { Button } from "@/components/ui/button";
@@ -69,7 +70,7 @@ export default function EditEventPage() {
       await updateEvent.mutateAsync({ id: eventId, data });
       router.push(`/${locale}/dashboard/events`);
     } catch (error: unknown) {
-      console.error("Update failed:", error);
+      logger.error("edit-event", "Update failed", error);
     }
   };
 

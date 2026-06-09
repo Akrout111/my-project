@@ -1,13 +1,20 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
-import { requireRole } from "@/lib/clerk";
+import { requireRole } from "@/lib/auth-server";
 import { successResponse, errorResponse } from "@/lib/api-response";
 import { validateTicketSchema } from "@/lib/validators/ticket-schema";
+import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
 
 // POST /api/v1/tickets/validate — Validate a ticket at event entrance
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit check
+    const rateLimitResult = checkRateLimit(getClientIdentifier(req), { limit: 30, windowSeconds: 60 });
+    if (!rateLimitResult.allowed) {
+      return errorResponse("RATE_LIMITED", "Too many requests. Please try again later.", undefined, 429);
+    }
+
     const user = await requireRole(["ORGANIZER", "ADMIN"]);
 
     const body = await req.json();

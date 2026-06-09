@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
-import { requireRole } from "@/lib/clerk";
+import { requireRole } from "@/lib/auth-server";
 import { successResponse, errorResponse } from "@/lib/api-response";
+import { logger } from "@/lib/logger";
 
 // GET /api/v1/dashboard/events — Organizer's Events
 export async function GET(req: NextRequest) {
@@ -93,7 +94,7 @@ export async function GET(req: NextRequest) {
         error.message === "UNAUTHORIZED" ? 401 : 403
       );
     }
-    console.error("Dashboard events error:", error);
+    logger.error("dashboard-events", "Dashboard events error", error);
     return errorResponse("INTERNAL_ERROR", "خطأ داخلي", undefined, 500);
   }
 }

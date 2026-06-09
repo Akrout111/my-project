@@ -1,7 +1,8 @@
 import { db } from "@/lib/db";
 import { successResponse, errorResponse } from "@/lib/api-response";
-import { getCurrentUser } from "@/lib/clerk";
+import { getCurrentUser } from "@/lib/auth-server";
 import { z } from "zod";
+import { logger } from "@/lib/logger";
 
 const notificationQuerySchema = z.object({
   page: z.coerce.number({ message: "Page must be a number" }).int({ message: "Page must be an integer" }).min(1, { message: "Page must be at least 1" }).default(1),
@@ -64,7 +65,7 @@ export async function GET(req: Request) {
       { page, limit, total, totalPages: Math.ceil(total / limit) }
     );
   } catch (error: unknown) {
-    console.error("Error fetching notifications:", error);
+    logger.error("notifications", "Error fetching notifications", error);
     return errorResponse("INTERNAL_ERROR", "حدث خطأ في جلب الإشعارات", undefined, 500);
   }
 }
@@ -95,7 +96,7 @@ export async function PATCH() {
       "تم تعليم كل الإشعارات كمقروءة"
     );
   } catch (error: unknown) {
-    console.error("Error marking all notifications as read:", error);
+    logger.error("notifications", "Error marking all notifications as read", error);
     return errorResponse("INTERNAL_ERROR", "حدث خطأ في تعليم الإشعارات", undefined, 500);
   }
 }

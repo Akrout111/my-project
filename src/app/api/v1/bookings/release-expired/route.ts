@@ -1,6 +1,7 @@
 import { releaseExpiredBookings } from "@/lib/booking-expiry";
 import { successResponse, errorResponse } from "@/lib/api-response";
-import { getCurrentUser } from "@/lib/clerk";
+import { getCurrentUser } from "@/lib/auth-server";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/v1/bookings/release-expired
@@ -19,7 +20,7 @@ export async function POST() {
     const result = await releaseExpiredBookings();
     return successResponse(result, `تم تحرير ${result.released} حجز منتهي`);
   } catch (error: unknown) {
-    console.error("Error releasing expired bookings:", error);
+    logger.error("release-expired", "Error releasing expired bookings", error);
     return errorResponse("INTERNAL_ERROR", "حدث خطأ في تحرير الحجوزات", undefined, 500);
   }
 }

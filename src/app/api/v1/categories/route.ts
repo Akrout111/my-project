@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { successResponse, errorResponse } from "@/lib/api-response";
+import { logger } from "@/lib/logger";
 
 export async function GET() {
   try {
@@ -21,7 +22,7 @@ export async function GET() {
 
     return successResponse({ categories: categoriesWithCount }, "تم جلب التصنيفات");
   } catch (error: unknown) {
-    console.error("Error fetching categories:", error);
+    logger.error("categories", "Error fetching categories", error);
     return errorResponse("INTERNAL_ERROR", "حدث خطأ في جلب التصنيفات", undefined, 500);
   }
 }

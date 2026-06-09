@@ -1,8 +1,9 @@
 import { db } from "@/lib/db";
 import { successResponse, errorResponse } from "@/lib/api-response";
 import { createBookingSchema } from "@/lib/validators/booking-schema";
-import { getCurrentUser } from "@/lib/clerk";
+import { getCurrentUser } from "@/lib/auth-server";
 import { generateBookingNumber, generateTicketNumber, getBookingExpiry } from "@/lib/booking-utils";
+import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limit";
 import type { Prisma } from "@prisma/client";
 import { logger } from "@/lib/logger";
 
@@ -11,6 +12,12 @@ import { logger } from "@/lib/logger";
  */
 export async function POST(req: Request) {
   try {
+    // Rate limit check
+    const rateLimitResult = checkRateLimit(getClientIdentifier(req), { limit: 10, windowSeconds: 60 });
+    if (!rateLimitResult.allowed) {
+      return errorResponse("RATE_LIMITED", "Too many requests. Please try again later.", undefined, 429);
+    }
+
     // 1. تحقق من المصادقة
     const dbUser = await getCurrentUser();
     if (!dbUser) return errorResponse("UNAUTHORIZED", "يجب تسجيل الدخول", undefined, 401);
@@ -84,6 +91,7 @@ export async function POST(req: Request) {
       });
 
       // أنشئ التذاكر + حدّث quantitySold مع التحقق من التوفر
+      const createdTickets: Array<{ id: string; ticketNumber: string }> = [];
       for (const record of ticketRecords) {
         // تحقق من التوفر داخل transaction بشكل صحيح
         const tier = await tx.ticketTier.findUnique({
@@ -101,26 +109,24 @@ export async function POST(req: Request) {
           data: { quantitySold: { increment: record.quantity } },
         });
 
-        // أنشئ التذاكر باستخدام batch insert (بدلاً من N individual inserts)
-        await tx.ticket.createMany({
-          data: Array.from({ length: record.quantity }, () => ({
-            ticketNumber: generateTicketNumber(),
-            ticketTierId: record.ticketTierId,
-            bookingId: newBooking.id,
-          })),
-        });
+        // أنشئ التذاكر الفردية
+        for (let i = 0; i < record.quantity; i++) {
+          const ticket = await tx.ticket.create({
+            data: {
+              ticketNumber: generateTicketNumber(),
+              ticketTierId: record.ticketTierId,
+              bookingId: newBooking.id,
+            },
+          });
+          createdTickets.push(ticket);
+        }
       }
 
-      return newBooking;
+      return { ...newBooking, tickets: createdTickets };
     });
 
-    // 7. Fetch created tickets and return result
+    // 7. أرجع النتيجة مع معلومات انتهاء الصلاحية
     const expiresAt = getBookingExpiry();
-
-    const createdTickets = await db.ticket.findMany({
-      where: { bookingId: booking.id },
-      select: { id: true, ticketNumber: true },
-    });
 
     return successResponse(
       {
@@ -134,7 +140,7 @@ export async function POST(req: Request) {
             id: event.id,
             titleAr: event.titleAr,
           },
-          tickets: createdTickets.map((t) => ({
+          tickets: booking.tickets.map((t: { id: string; ticketNumber: string }) => ({
             id: t.id,
             ticketNumber: t.ticketNumber,
           })),

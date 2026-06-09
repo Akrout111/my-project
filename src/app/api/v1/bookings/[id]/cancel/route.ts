@@ -1,16 +1,23 @@
 import { db } from "@/lib/db";
 import { successResponse, errorResponse } from "@/lib/api-response";
-import { getCurrentUser } from "@/lib/clerk";
+import { getCurrentUser } from "@/lib/auth-server";
+import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
 
 /**
  * PATCH /api/v1/bookings/:id/cancel — إلغاء حجز
  */
 export async function PATCH(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Rate limit check
+    const rateLimitResult = checkRateLimit(getClientIdentifier(req), { limit: 5, windowSeconds: 60 });
+    if (!rateLimitResult.allowed) {
+      return errorResponse("RATE_LIMITED", "Too many requests. Please try again later.", undefined, 429);
+    }
+
     const dbUser = await getCurrentUser();
     if (!dbUser) return errorResponse("UNAUTHORIZED", "يجب تسجيل الدخول", undefined, 401);
 

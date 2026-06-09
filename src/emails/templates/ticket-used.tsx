@@ -22,13 +22,12 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://kuwaitevents.com";
 export function TicketUsedEmail({
   data,
 }: {
-  data: Record<string, unknown>;
+  data: TicketUsedData;
 }) {
-  const d = data as unknown as TicketUsedData;
-  const appUrl = d.appUrl ?? APP_URL;
+  const appUrl = data.appUrl ?? APP_URL;
 
   return (
-    <EmailLayout previewText={`تم استخدام التذكرة ${d.ticketNumber}`}>
+    <EmailLayout previewText={`تم استخدام التذكرة ${data.ticketNumber}`}>
       {/* Title */}
       <Section style={{ textAlign: "center", marginBottom: 24 }}>
         <Text
@@ -72,7 +71,7 @@ export function TicketUsedEmail({
             margin: "0 0 16px 0",
           }}
         >
-          {d.eventTitleAr}
+          {data.eventTitleAr}
         </Text>
 
         <Row style={{ marginBottom: 8 }}>
@@ -87,12 +86,12 @@ export function TicketUsedEmail({
             <Text
               style={{ fontSize: 13, color: "#334155", fontWeight: 600, margin: 0 }}
             >
-              {d.ticketNumber}
+              {data.ticketNumber}
             </Text>
           </Column>
         </Row>
 
-        {d.attendeeName && (
+        {data.attendeeName && (
           <Row style={{ marginBottom: 8 }}>
             <Column style={{ width: "40%" }}>
               <Text
@@ -105,7 +104,7 @@ export function TicketUsedEmail({
               <Text
                 style={{ fontSize: 13, color: "#334155", fontWeight: 600, margin: 0 }}
               >
-                {d.attendeeName}
+                {data.attendeeName}
               </Text>
             </Column>
           </Row>
@@ -123,7 +122,7 @@ export function TicketUsedEmail({
             <Text
               style={{ fontSize: 13, color: "#334155", fontWeight: 600, margin: 0 }}
             >
-              {d.usedAt}
+              {data.usedAt}
             </Text>
           </Column>
         </Row>

@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
-import { getCurrentUser } from "@/lib/clerk";
+import { getCurrentUser } from "@/lib/auth-server";
 import { successResponse, errorResponse } from "@/lib/api-response";
+import { logger } from "@/lib/logger";
 
 // GET /api/v1/events/:id/reviews/eligibility — Check if current user can review
 export async function GET(
@@ -86,7 +87,7 @@ export async function GET(
         : reason || "لا يمكنك إضافة تقييم"
     );
   } catch (error: unknown) {
-    console.error("Eligibility check error:", error);
+    logger.error("review-eligibility", "Eligibility check error", error);
     return errorResponse("INTERNAL_ERROR", "خطأ داخلي", undefined, 500);
   }
 }

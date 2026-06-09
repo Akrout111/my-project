@@ -26,13 +26,12 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://kuwaitevents.com";
 export function BookingConfirmationEmail({
   data,
 }: {
-  data: Record<string, unknown>;
+  data: BookingConfirmationData;
 }) {
-  const d = data as unknown as BookingConfirmationData;
-  const appUrl = d.appUrl ?? APP_URL;
+  const appUrl = data.appUrl ?? APP_URL;
 
   return (
-    <EmailLayout previewText={`تأكيد الحجز ${d.bookingNumber} — ${d.eventTitle}`}>
+    <EmailLayout previewText={`تأكيد الحجز ${data.bookingNumber} — ${data.eventTitle}`}>
       {/* Title */}
       <Section style={{ textAlign: "center", marginBottom: 24 }}>
         <Text
@@ -52,7 +51,7 @@ export function BookingConfirmationEmail({
             margin: "8px 0 0 0",
           }}
         >
-          مرحباً {d.attendeeName}، تم تأكيد حجزك بنجاح!
+          مرحباً {data.attendeeName}، تم تأكيد حجزك بنجاح!
         </Text>
       </Section>
 
@@ -76,7 +75,7 @@ export function BookingConfirmationEmail({
             margin: "0 0 16px 0",
           }}
         >
-          {d.eventTitle}
+          {data.eventTitle}
         </Text>
 
         <Row style={{ marginBottom: 8 }}>
@@ -91,7 +90,7 @@ export function BookingConfirmationEmail({
             <Text
               style={{ fontSize: 13, color: "#334155", fontWeight: 600, margin: 0 }}
             >
-              {d.eventDate}
+              {data.eventDate}
             </Text>
           </Column>
         </Row>
@@ -108,7 +107,7 @@ export function BookingConfirmationEmail({
             <Text
               style={{ fontSize: 13, color: "#334155", fontWeight: 600, margin: 0 }}
             >
-              {d.eventTime}
+              {data.eventTime}
             </Text>
           </Column>
         </Row>
@@ -125,7 +124,7 @@ export function BookingConfirmationEmail({
             <Text
               style={{ fontSize: 13, color: "#334155", fontWeight: 600, margin: 0 }}
             >
-              {d.venueName}
+              {data.venueName}
             </Text>
           </Column>
         </Row>
@@ -142,7 +141,7 @@ export function BookingConfirmationEmail({
             <Text
               style={{ fontSize: 13, color: "#334155", fontWeight: 600, margin: 0 }}
             >
-              {d.ticketCount}
+              {data.ticketCount}
             </Text>
           </Column>
         </Row>
@@ -159,7 +158,7 @@ export function BookingConfirmationEmail({
             <Text
               style={{ fontSize: 15, color: "#1a1a2e", fontWeight: 700, margin: 0 }}
             >
-              {d.totalAmount} د.ك
+              {data.totalAmount} د.ك
             </Text>
           </Column>
         </Row>
@@ -194,7 +193,7 @@ export function BookingConfirmationEmail({
             letterSpacing: "1px",
           }}
         >
-          {d.bookingNumber}
+          {data.bookingNumber}
         </Text>
       </Section>
 
@@ -223,7 +222,7 @@ export function BookingConfirmationEmail({
       {/* CTA Button */}
       <Section style={{ textAlign: "center", marginBottom: 16 }}>
         <Button
-          href={`${appUrl}/ar/bookings/${d.bookingId}`}
+          href={`${appUrl}/ar/bookings/${data.bookingId}`}
           style={{
             backgroundColor: "#1a1a2e",
             color: "#ffffff",

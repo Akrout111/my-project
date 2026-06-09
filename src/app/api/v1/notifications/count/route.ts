@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { successResponse, errorResponse } from "@/lib/api-response";
-import { getCurrentUser } from "@/lib/clerk";
+import { getCurrentUser } from "@/lib/auth-server";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/v1/notifications/count — عدد الإشعارات غير المقروءة
@@ -24,7 +25,7 @@ export async function GET() {
       "تم جلب عدد الإشعارات غير المقروءة"
     );
   } catch (error: unknown) {
-    console.error("Error fetching notification count:", error);
+    logger.error("notifications-count", "Error fetching notification count", error);
     return errorResponse("INTERNAL_ERROR", "حدث خطأ في جلب عدد الإشعارات", undefined, 500);
   }
 }

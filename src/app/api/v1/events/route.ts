@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
     const startDateTo = searchParams.get("startDateTo");
     const venueId = searchParams.get("venueId");
     const isFeatured = searchParams.get("isFeatured") === "true";
-    const allowedSortBy = ["startDate", "createdAt", "titleAr", "titleEn"];
+    const allowedSortBy = ["startDate", "createdAt", "titleAr", "titleEn", "minPrice"];
     const allowedSortOrder = ["asc", "desc"];
     const sortByParam = searchParams.get("sortBy") ?? "startDate";
     const sortOrderParam = searchParams.get("sortOrder") ?? "asc";

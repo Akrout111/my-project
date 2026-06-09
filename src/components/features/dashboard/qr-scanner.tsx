@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Camera, CameraOff, Loader2 } from "lucide-react";
+import { logger } from "@/lib/logger";
 
 interface QRScannerProps {
   onScan: (data: string) => void;
@@ -61,7 +62,7 @@ export function QRScanner({ onScan, isActive, onError }: QRScannerProps) {
       setHasCamera(true);
     } catch (error: unknown) {
       const err = error as Error & { name?: string };
-      console.error("Camera error:", err);
+      logger.error("qr-scanner", "Camera error", err);
       setHasCamera(false);
 
       if (err.name === "NotAllowedError") {

@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# NOTE: The following GitHub Secrets must be configured for full CI:
+# - JWT_SECRET (for auth tests)
+# - CLERK_SECRET_KEY (for Clerk integration tests)
+# Currently using SQLite for CI test database (no external DB needed).
+
+jobs:
+  lint-and-typecheck:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Setup test database
+        run: |
+          echo "DATABASE_URL=file:./ci-test.db" >> $GITHUB_ENV
+          bun run db:generate
+          bun run db:push
+      - run: bun run lint
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: lint-and-typecheck
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Setup test database
+        run: |
+          echo "DATABASE_URL=file:./ci-test.db" >> $GITHUB_ENV
+          bun run db:generate
+          bun run db:push
+      - run: bun run test
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Setup test database
+        run: |
+          echo "DATABASE_URL=file:./ci-test.db" >> $GITHUB_ENV
+          bun run db:generate
+          bun run db:push
+      - run: bun run build
+
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    needs: lint-and-typecheck
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun audit

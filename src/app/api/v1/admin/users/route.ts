@@ -1,8 +1,9 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
-import { requireRole } from "@/lib/clerk";
+import { requireRole } from "@/lib/auth-server";
 import { successResponse, errorResponse } from "@/lib/api-response";
 import type { Prisma } from "@prisma/client";
+import { logger } from "@/lib/logger";
 
 // GET /api/v1/admin/users — List all users (admin only)
 export async function GET(req: NextRequest) {
@@ -99,7 +100,7 @@ export async function GET(req: NextRequest) {
     if (error instanceof Error && error.message.includes("FORBIDDEN")) {
       return errorResponse("FORBIDDEN", "صلاحيات غير كافية", undefined, 403);
     }
-    console.error("Admin users list error:", error);
+    logger.error("admin-users", "Admin users list error", error);
     return errorResponse("INTERNAL_ERROR", "خطأ داخلي", undefined, 500);
   }
 }

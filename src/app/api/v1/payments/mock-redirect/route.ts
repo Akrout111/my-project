@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/v1/payments/mock-redirect
@@ -41,7 +42,7 @@ export async function GET(req: NextRequest) {
       }),
     });
   } catch (error: unknown) {
-    console.error("[Mock Redirect] Callback failed:", error);
+    logger.error("mock-redirect", "Callback failed", error);
   }
 
   // وجّه المستخدم لصفحة النتيجة

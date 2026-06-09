@@ -1,5 +1,6 @@
 import { releaseExpiredBookings } from "@/lib/booking-expiry";
 import { successResponse, errorResponse } from "@/lib/api-response";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/cron/release-expired
@@ -16,10 +17,10 @@ export async function GET(request: Request) {
     }
 
     const result = await releaseExpiredBookings();
-    console.log(`[Cron] Released ${result.released} expired bookings`);
+    logger.info("cron-release-expired", `Released ${result.released} expired bookings`);
     return successResponse(result, `Released ${result.released} expired bookings`);
   } catch (error: unknown) {
-    console.error("Cron release-expired error:", error);
+    logger.error("cron-release-expired", "Cron release-expired error", error);
     return errorResponse("INTERNAL_ERROR", "Failed to release expired bookings", undefined, 500);
   }
 }

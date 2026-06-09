@@ -21,13 +21,12 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://kuwaitevents.com";
 export function PaymentFailedEmail({
   data,
 }: {
-  data: Record<string, unknown>;
+  data: PaymentFailedData;
 }) {
-  const d = data as unknown as PaymentFailedData;
-  const appUrl = d.appUrl ?? APP_URL;
+  const appUrl = data.appUrl ?? APP_URL;
 
   return (
-    <EmailLayout previewText={`فشل الدفع — حجز ${d.bookingNumber}`}>
+    <EmailLayout previewText={`فشل الدفع — حجز ${data.bookingNumber}`}>
       {/* Title */}
       <Section style={{ textAlign: "center", marginBottom: 24 }}>
         <Text
@@ -47,7 +46,7 @@ export function PaymentFailedEmail({
             margin: "8px 0 0 0",
           }}
         >
-          مرحباً {d.attendeeName}، لم تتم عملية الدفع بنجاح.
+          مرحباً {data.attendeeName}، لم تتم عملية الدفع بنجاح.
         </Text>
       </Section>
 
@@ -86,7 +85,7 @@ export function PaymentFailedEmail({
             <Text
               style={{ fontSize: 13, color: "#7f1d1d", fontWeight: 600, margin: 0 }}
             >
-              {d.bookingNumber}
+              {data.bookingNumber}
             </Text>
           </Column>
         </Row>
@@ -103,7 +102,7 @@ export function PaymentFailedEmail({
             <Text
               style={{ fontSize: 13, color: "#7f1d1d", fontWeight: 600, margin: 0 }}
             >
-              {d.eventTitle}
+              {data.eventTitle}
             </Text>
           </Column>
         </Row>
@@ -136,7 +135,7 @@ export function PaymentFailedEmail({
       {/* CTA Button */}
       <Section style={{ textAlign: "center", marginBottom: 16 }}>
         <Button
-          href={`${appUrl}/ar/bookings/${d.bookingId ?? ""}`}
+          href={`${appUrl}/ar/bookings/${data.bookingId ?? ""}`}
           style={{
             backgroundColor: "#dc2626",
             color: "#ffffff",

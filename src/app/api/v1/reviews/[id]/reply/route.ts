@@ -1,8 +1,10 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
-import { requireRole } from "@/lib/clerk";
+import { requireRole } from "@/lib/auth-server";
 import { successResponse, errorResponse } from "@/lib/api-response";
+import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limit";
 import { z } from "zod";
+import { logger } from "@/lib/logger";
 
 const replySchema = z.object({
   reply: z
@@ -17,6 +19,12 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Rate limit check
+    const rateLimitResult = checkRateLimit(getClientIdentifier(req), { limit: 5, windowSeconds: 60 });
+    if (!rateLimitResult.allowed) {
+      return errorResponse("RATE_LIMITED", "Too many requests. Please try again later.", undefined, 429);
+    }
+
     const user = await requireRole(["ORGANIZER", "ADMIN"]);
 
     const { id: reviewId } = await params;
@@ -92,7 +100,7 @@ export async function POST(
         403
       );
     }
-    console.error("Reply to review error:", error);
+    logger.error("review-reply", "Reply to review error", error);
     return errorResponse("INTERNAL_ERROR", "خطأ داخلي", undefined, 500);
   }
 }

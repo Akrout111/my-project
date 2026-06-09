@@ -1,8 +1,10 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
-import { requireRole } from "@/lib/clerk";
+import { requireRole } from "@/lib/auth-server";
 import { successResponse, errorResponse } from "@/lib/api-response";
 import { changeEventStatusSchema } from "@/lib/validators/admin-schema";
+import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
 
 // PATCH /api/v1/admin/events/:id/status — Change event status (admin only)
 export async function PATCH(
@@ -10,6 +12,12 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Rate limit check
+    const rateLimitResult = checkRateLimit(getClientIdentifier(req), { limit: 30, windowSeconds: 60 });
+    if (!rateLimitResult.allowed) {
+      return errorResponse("RATE_LIMITED", "Too many requests. Please try again later.", undefined, 429);
+    }
+
     await requireRole(["ADMIN"]);
     const { id } = await params;
 
@@ -57,7 +65,7 @@ export async function PATCH(
     if (error instanceof Error && error.message.includes("FORBIDDEN")) {
       return errorResponse("FORBIDDEN", "صلاحيات غير كافية", undefined, 403);
     }
-    console.error("Change event status error:", error);
+    logger.error("event-status", "Change event status error", error);
     return errorResponse("INTERNAL_ERROR", "خطأ داخلي", undefined, 500);
   }
 }

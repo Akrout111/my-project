@@ -1,9 +1,11 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
-import { getCurrentUser } from "@/lib/clerk";
+import { getCurrentUser } from "@/lib/auth-server";
 import { successResponse, errorResponse } from "@/lib/api-response";
 import { createReviewSchema } from "@/lib/validators/review-schema";
+import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limit";
 import { notificationService } from "@/lib/notifications/notification-service";
+import { logger } from "@/lib/logger";
 
 // POST /api/v1/events/:id/reviews — Create a review for an event
 export async function POST(
@@ -11,6 +13,12 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Rate limit check
+    const rateLimitResult = checkRateLimit(getClientIdentifier(req), { limit: 3, windowSeconds: 60 });
+    if (!rateLimitResult.allowed) {
+      return errorResponse("RATE_LIMITED", "Too many requests. Please try again later.", undefined, 429);
+    }
+
     const user = await getCurrentUser();
     if (!user)
       return errorResponse("UNAUTHORIZED", "غير مصرح", undefined, 401);
@@ -116,7 +124,7 @@ export async function POST(
         reviewerName: user.name,
         rating,
         email: event.organizer.email,
-      }).catch((err: unknown) => console.error("[Notification] New review notification error:", err));
+      }).catch((err: unknown) => logger.error("notification", "New review notification error", err));
     }
 
     return successResponse(
@@ -135,7 +143,7 @@ export async function POST(
       "تم إضافة التقييم بنجاح"
     );
   } catch (error: unknown) {
-    console.error("Create review error:", error);
+    logger.error("reviews", "Create review error", error);
     return errorResponse("INTERNAL_ERROR", "خطأ داخلي", undefined, 500);
   }
 }

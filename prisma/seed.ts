@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { updateEventMinPrice } from "@/lib/update-event-prices";
 
 async function main() {
   console.log("🌱 Seeding database...");
@@ -296,14 +297,24 @@ async function main() {
 
   for (const eventData of events) {
     const { ticketTiers, ...rest } = eventData;
-    await db.event.upsert({
+    const event = await db.event.upsert({
       where: { slug: rest.slug },
       update: {},
       create: { ...rest, ticketTiers: { create: ticketTiers.create } },
     });
+    // Backfill minPrice for each event
+    await updateEventMinPrice(event.id);
   }
 
   console.log(`✅ Created ${events.length} events with ticket tiers`);
+
+  // Backfill minPrice for any existing events that might not have it
+  const allEvents = await db.event.findMany({ select: { id: true } });
+  for (const e of allEvents) {
+    await updateEventMinPrice(e.id);
+  }
+  console.log(`✅ Backfilled minPrice for ${allEvents.length} events`);
+
   console.log("🌱 Seeding completed!");
 }
 

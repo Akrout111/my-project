@@ -1,10 +1,11 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
-import { getCurrentUser } from "@/lib/clerk";
+import { getCurrentUser } from "@/lib/auth-server";
 import { successResponse, errorResponse } from "@/lib/api-response";
 import { updateEventSchema } from "@/lib/validators/event-schema";
 import { generateUniqueSlug } from "@/lib/slug";
 import { logger } from "@/lib/logger";
+import { updateEventMinPrice } from "@/lib/update-event-prices";
 
 // GET /api/v1/events/:id — Get single event (supports both id and slug)
 export async function GET(
@@ -160,6 +161,11 @@ export async function PATCH(
         organizer: { select: { id: true, name: true } },
       },
     });
+
+    // Recalculate cached minPrice after ticket tier changes
+    if (data.ticketTiers && data.ticketTiers.length > 0) {
+      await updateEventMinPrice(id);
+    }
 
     return successResponse(
       { event: serializeEvent(event) },

@@ -1,8 +1,10 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
-import { requireRole } from "@/lib/clerk";
+import { requireRole } from "@/lib/auth-server";
 import { successResponse, errorResponse } from "@/lib/api-response";
 import { createCategorySchema } from "@/lib/validators/admin-schema";
+import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
 
 // GET /api/v1/admin/categories — List categories with event counts (admin only)
 export async function GET() {
@@ -38,7 +40,7 @@ export async function GET() {
     if (error instanceof Error && error.message.includes("FORBIDDEN")) {
       return errorResponse("FORBIDDEN", "صلاحيات غير كافية", undefined, 403);
     }
-    console.error("Admin categories list error:", error);
+    logger.error("admin-categories", "Admin categories list error", error);
     return errorResponse("INTERNAL_ERROR", "خطأ داخلي", undefined, 500);
   }
 }
@@ -46,6 +48,12 @@ export async function GET() {
 // POST /api/v1/admin/categories — Create category (admin only)
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit check
+    const rateLimitResult = checkRateLimit(getClientIdentifier(req), { limit: 30, windowSeconds: 60 });
+    if (!rateLimitResult.allowed) {
+      return errorResponse("RATE_LIMITED", "Too many requests. Please try again later.", undefined, 429);
+    }
+
     await requireRole(["ADMIN"]);
 
     const body = await req.json();
@@ -93,7 +101,7 @@ export async function POST(req: NextRequest) {
     if (error instanceof Error && error.message.includes("FORBIDDEN")) {
       return errorResponse("FORBIDDEN", "صلاحيات غير كافية", undefined, 403);
     }
-    console.error("Create category error:", error);
+    logger.error("create-category", "Create category error", error);
     return errorResponse("INTERNAL_ERROR", "خطأ داخلي", undefined, 500);
   }
 }

@@ -3,10 +3,11 @@ import { successResponse, errorResponse } from "@/lib/api-response";
 import { forgotPasswordSchema } from "@/lib/validators/auth-schema";
 import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limit";
 import { NextRequest } from "next/server";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: NextRequest) {
   // Rate limiting
-  const rateLimitResult = await checkRateLimit(getClientIdentifier(req), { limit: 5, windowSeconds: 60 });
+  const rateLimitResult = checkRateLimit(getClientIdentifier(req), { limit: 5, windowSeconds: 60 });
   if (!rateLimitResult.allowed) {
     return errorResponse("RATE_LIMITED", "Too many requests. Please try again later.", undefined, 429);
   }
@@ -35,7 +36,7 @@ export async function POST(req: NextRequest) {
     if (user) {
       // In production, send a password reset email here
       // For now, we just acknowledge the request
-      console.log(`Password reset requested for: ${email}`);
+      logger.info("forgot-password", "Password reset requested", { email });
     }
 
     return successResponse(
@@ -43,7 +44,7 @@ export async function POST(req: NextRequest) {
       "If an account exists with this email, you will receive a password reset link"
     );
   } catch (error: unknown) {
-    console.error("Forgot password error:", error);
+    logger.error("forgot-password", "Forgot password error", error);
     return errorResponse("INTERNAL_ERROR", "Failed to process request", undefined, 500);
   }
 }

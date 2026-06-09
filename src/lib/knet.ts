@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { logger } from "@/lib/logger";
 
 /**
  * KNet Payment Gateway Integration
@@ -99,9 +100,7 @@ export async function initiateKNetPayment(params: {
 
   // === MOCK MODE ===
   if (isMockMode) {
-    console.log(
-      `[KNet MOCK] Initiating payment: ${paymentId} for booking: ${params.bookingId}, amount: ${params.amount} ${params.currency ?? "KWD"}`
-    );
+    logger.info("knet", `MOCK Initiating payment: ${paymentId} for booking: ${params.bookingId}, amount: ${params.amount} ${params.currency ?? "KWD"}`);
 
     // محاكاة — نُرجع redirect URL وهمي يؤدي لصفحة النجاح
     const mockRedirectUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/api/v1/payments/mock-redirect?paymentId=${paymentId}&bookingId=${params.bookingId}&result=CAPTURED`;
@@ -146,7 +145,7 @@ export async function initiateKNetPayment(params: {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("[KNet] Initiate payment failed:", errorText);
+      logger.error("knet", "Initiate payment failed", errorText);
       return { success: false, error: "KNet initiate failed" };
     }
 
@@ -158,7 +157,7 @@ export async function initiateKNetPayment(params: {
       paymentId: result.paymentId ?? paymentId,
     };
   } catch (error: unknown) {
-    console.error("[KNet] Initiate payment error:", error);
+    logger.error("knet", "Initiate payment error", error);
     return { success: false, error: "KNet connection failed" };
   }
 }
@@ -202,9 +201,7 @@ export async function refundKNetPayment(params: {
 
   // === MOCK MODE ===
   if (isMockMode) {
-    console.log(
-      `[KNet MOCK] Refunding payment: ${params.paymentId}, amount: ${params.amount}, reason: ${params.reason}`
-    );
+    logger.info("knet", `MOCK Refunding payment: ${params.paymentId}, amount: ${params.amount}, reason: ${params.reason}`);
     return { success: true };
   }
 
@@ -235,7 +232,7 @@ export async function refundKNetPayment(params: {
 
     return { success: true };
   } catch (error: unknown) {
-    console.error("[KNet] Refund error:", error);
+    logger.error("knet", "Refund error", error);
     return { success: false, error: "KNet refund connection failed" };
   }
 }

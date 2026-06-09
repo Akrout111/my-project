@@ -1,6 +1,7 @@
 import { Webhook } from "svix";
 import { headers } from "next/headers";
 import { db } from "@/lib/db";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
   let payload: Record<string, unknown>;
@@ -24,7 +25,7 @@ export async function POST(req: Request) {
 
   const webhookSecret = process.env.CLERK_WEBHOOK_SECRET;
   if (!webhookSecret) {
-    console.error("Missing CLERK_WEBHOOK_SECRET env var");
+    logger.error("clerk-webhook", "Missing CLERK_WEBHOOK_SECRET env var");
     return new Response("Server configuration error", { status: 500 });
   }
 

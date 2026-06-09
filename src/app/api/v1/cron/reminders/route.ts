@@ -1,8 +1,9 @@
 import { db } from "@/lib/db";
 import { NotificationType } from "@/lib/notifications/types";
-import { sendEventReminderEmail } from "@/lib/email";
+import { sendEmail } from "@/lib/email";
 import { successResponse, errorResponse } from "@/lib/api-response";
 import { createHmac } from "crypto";
+import { logger } from "@/lib/logger";
 
 /**
  * Verify Vercel Cron signature in production.
@@ -134,19 +135,22 @@ export async function GET(request: Request) {
           day: "numeric",
         });
 
-        await sendEventReminderEmail({
+        await sendEmail({
           to: booking.attendeeEmail,
-          attendeeName: booking.attendeeName,
-          eventTitle: booking.event.titleAr,
-          eventDate,
-          eventTime: booking.event.startTime,
-          venueName: booking.event.venue?.nameAr ?? "غير محدد",
-          bookingId: booking.id,
-          appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "https://kuwaitevents.com",
-          locale: "ar",
+          subject: `تذكير: ${booking.event.titleAr} غداً!`,
+          html: `
+            <div dir="rtl" style="font-family: 'Segoe UI', Tahoma, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2>مرحباً ${booking.attendeeName}،</h2>
+              <p>هذا تذكير بأن الفعالية <strong>${booking.event.titleAr}</strong> ستبدأ قريباً!</p>
+              <p>📅 ${eventDate}</p>
+              <p>🕐 ${booking.event.startTime}</p>
+              ${booking.event.venue ? `<p>📍 ${booking.event.venue.nameAr}</p>` : ""}
+              <p>رقم الحجز: <strong>${booking.bookingNumber}</strong></p>
+            </div>
+          `,
         });
       } catch (emailError: unknown) {
-        console.error("[Cron Reminders] Failed to send reminder email:", emailError);
+        logger.error("cron-reminders", "Failed to send reminder email", emailError);
         // Continue even if email fails — notification was already created
       }
 
@@ -158,7 +162,7 @@ export async function GET(request: Request) {
       `Sent ${remindersSent} reminders out of ${upcomingBookings.length} upcoming bookings`
     );
   } catch (error: unknown) {
-    console.error("[Cron Reminders] Error:", error);
+    logger.error("cron-reminders", "Cron Reminders error", error);
     return errorResponse(
       "INTERNAL_ERROR",
       error instanceof Error ? error.message : "Failed to process reminders",

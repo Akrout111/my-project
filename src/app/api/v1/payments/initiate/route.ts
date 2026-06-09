@@ -2,7 +2,8 @@ import { db } from "@/lib/db";
 import { successResponse, errorResponse } from "@/lib/api-response";
 import { initiatePaymentSchema } from "@/lib/validators/payment-schema";
 import { initiateKNetPayment } from "@/lib/knet";
-import { getCurrentUser } from "@/lib/clerk";
+import { getCurrentUser } from "@/lib/auth-server";
+import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
 
 /**
@@ -11,6 +12,12 @@ import { logger } from "@/lib/logger";
  */
 export async function POST(req: Request) {
   try {
+    // Rate limit check
+    const rateLimitResult = checkRateLimit(getClientIdentifier(req), { limit: 5, windowSeconds: 60 });
+    if (!rateLimitResult.allowed) {
+      return errorResponse("RATE_LIMITED", "Too many requests. Please try again later.", undefined, 429);
+    }
+
     // 1. تحقق من المصادقة
     const dbUser = await getCurrentUser();
     if (!dbUser) return errorResponse("UNAUTHORIZED", "يجب تسجيل الدخول", undefined, 401);

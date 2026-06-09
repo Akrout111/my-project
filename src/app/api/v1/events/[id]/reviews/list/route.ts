@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
 import { successResponse, errorResponse } from "@/lib/api-response";
+import { logger } from "@/lib/logger";
 
 // GET /api/v1/events/:id/reviews/list — Get reviews for an event (public)
 export async function GET(
@@ -110,7 +111,7 @@ export async function GET(
       }
     );
   } catch (error: unknown) {
-    console.error("List reviews error:", error);
+    logger.error("reviews-list", "List reviews error", error);
     return errorResponse("INTERNAL_ERROR", "خطأ داخلي", undefined, 500);
   }
 }

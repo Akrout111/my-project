@@ -24,13 +24,12 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://kuwaitevents.com";
 export function NewBookingNotificationEmail({
   data,
 }: {
-  data: Record<string, unknown>;
+  data: NewBookingNotificationData;
 }) {
-  const d = data as unknown as NewBookingNotificationData;
-  const appUrl = d.appUrl ?? APP_URL;
+  const appUrl = data.appUrl ?? APP_URL;
 
   return (
-    <EmailLayout previewText={`حجز جديد — ${d.eventTitle}`}>
+    <EmailLayout previewText={`حجز جديد — ${data.eventTitle}`}>
       {/* Title */}
       <Section style={{ textAlign: "center", marginBottom: 24 }}>
         <Text
@@ -50,7 +49,7 @@ export function NewBookingNotificationEmail({
             margin: "8px 0 0 0",
           }}
         >
-          مرحباً {d.organizerName}، تم استلام حجز جديد على فعاليتك!
+          مرحباً {data.organizerName}، تم استلام حجز جديد على فعاليتك!
         </Text>
       </Section>
 
@@ -89,7 +88,7 @@ export function NewBookingNotificationEmail({
             <Text
               style={{ fontSize: 13, color: "#334155", fontWeight: 600, margin: 0, letterSpacing: "0.5px" }}
             >
-              {d.bookingNumber}
+              {data.bookingNumber}
             </Text>
           </Column>
         </Row>
@@ -106,7 +105,7 @@ export function NewBookingNotificationEmail({
             <Text
               style={{ fontSize: 13, color: "#334155", fontWeight: 600, margin: 0 }}
             >
-              {d.attendeeName}
+              {data.attendeeName}
             </Text>
           </Column>
         </Row>
@@ -123,7 +122,7 @@ export function NewBookingNotificationEmail({
             <Text
               style={{ fontSize: 13, color: "#334155", fontWeight: 600, margin: 0 }}
             >
-              {d.eventTitle}
+              {data.eventTitle}
             </Text>
           </Column>
         </Row>
@@ -140,7 +139,7 @@ export function NewBookingNotificationEmail({
             <Text
               style={{ fontSize: 13, color: "#334155", fontWeight: 600, margin: 0 }}
             >
-              {d.ticketCount}
+              {data.ticketCount}
             </Text>
           </Column>
         </Row>
@@ -157,7 +156,7 @@ export function NewBookingNotificationEmail({
             <Text
               style={{ fontSize: 15, color: "#1a1a2e", fontWeight: 700, margin: 0 }}
             >
-              {d.amount} د.ك
+              {data.amount} د.ك
             </Text>
           </Column>
         </Row>

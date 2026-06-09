@@ -59,9 +59,7 @@ class NotificationService {
   private async sendEmailNotification(emailData: EmailPayload): Promise<void> {
     const template = this.getEmailTemplate(emailData.template, emailData.templateData);
     if (!template) {
-      console.warn(
-        `[NotificationService] No email template found for: ${emailData.template}`
-      );
+      logger.warn("notification-service", `No email template found for: ${emailData.template}`);
       return;
     }
 

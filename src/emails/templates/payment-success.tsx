@@ -23,13 +23,12 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://kuwaitevents.com";
 export function PaymentSuccessEmail({
   data,
 }: {
-  data: Record<string, unknown>;
+  data: PaymentSuccessData;
 }) {
-  const d = data as unknown as PaymentSuccessData;
-  const appUrl = d.appUrl ?? APP_URL;
+  const appUrl = data.appUrl ?? APP_URL;
 
   return (
-    <EmailLayout previewText={`تم الدفع بنجاح — حجز ${d.bookingNumber}`}>
+    <EmailLayout previewText={`تم الدفع بنجاح — حجز ${data.bookingNumber}`}>
       {/* Title */}
       <Section style={{ textAlign: "center", marginBottom: 24 }}>
         <Text
@@ -49,7 +48,7 @@ export function PaymentSuccessEmail({
             margin: "8px 0 0 0",
           }}
         >
-          مرحباً {d.attendeeName}، تم استلام دفعتك بنجاح!
+          مرحباً {data.attendeeName}، تم استلام دفعتك بنجاح!
         </Text>
       </Section>
 
@@ -88,7 +87,7 @@ export function PaymentSuccessEmail({
             <Text
               style={{ fontSize: 13, color: "#334155", fontWeight: 600, margin: 0 }}
             >
-              {d.bookingNumber}
+              {data.bookingNumber}
             </Text>
           </Column>
         </Row>
@@ -105,7 +104,7 @@ export function PaymentSuccessEmail({
             <Text
               style={{ fontSize: 13, color: "#334155", fontWeight: 600, margin: 0 }}
             >
-              {d.eventTitle}
+              {data.eventTitle}
             </Text>
           </Column>
         </Row>
@@ -122,7 +121,7 @@ export function PaymentSuccessEmail({
             <Text
               style={{ fontSize: 16, color: "#16a34a", fontWeight: 700, margin: 0 }}
             >
-              {d.amount} د.ك
+              {data.amount} د.ك
             </Text>
           </Column>
         </Row>
@@ -139,7 +138,7 @@ export function PaymentSuccessEmail({
             <Text
               style={{ fontSize: 13, color: "#334155", fontWeight: 600, margin: 0, direction: "ltr", unicodeBidi: "embed" }}
             >
-              {d.transactionId}
+              {data.transactionId}
             </Text>
           </Column>
         </Row>
@@ -171,7 +170,7 @@ export function PaymentSuccessEmail({
       {/* CTA Button */}
       <Section style={{ textAlign: "center", marginBottom: 16 }}>
         <Button
-          href={`${appUrl}/ar/bookings/${d.bookingId}`}
+          href={`${appUrl}/ar/bookings/${data.bookingId}`}
           style={{
             backgroundColor: "#1a1a2e",
             color: "#ffffff",

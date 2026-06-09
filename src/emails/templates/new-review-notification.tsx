@@ -29,14 +29,13 @@ function renderStars(rating: number): string {
 export function NewReviewNotificationEmail({
   data,
 }: {
-  data: Record<string, unknown>;
+  data: NewReviewNotificationData;
 }) {
-  const d = data as unknown as NewReviewNotificationData;
-  const appUrl = d.appUrl ?? APP_URL;
-  const hasComment = Boolean(d.comment);
+  const appUrl = data.appUrl ?? APP_URL;
+  const hasComment = Boolean(data.comment);
 
   return (
-    <EmailLayout previewText={`تقييم جديد على ${d.eventTitle}`}>
+    <EmailLayout previewText={`تقييم جديد على ${data.eventTitle}`}>
       {/* Title */}
       <Section style={{ textAlign: "center", marginBottom: 24 }}>
         <Text
@@ -56,7 +55,7 @@ export function NewReviewNotificationEmail({
             margin: "8px 0 0 0",
           }}
         >
-          مرحباً {d.organizerName}، تلقيت تقييماً جديداً على فعاليتك!
+          مرحباً {data.organizerName}، تلقيت تقييماً جديداً على فعاليتك!
         </Text>
       </Section>
 
@@ -95,7 +94,7 @@ export function NewReviewNotificationEmail({
             <Text
               style={{ fontSize: 13, color: "#334155", fontWeight: 600, margin: 0 }}
             >
-              {d.reviewerName}
+              {data.reviewerName}
             </Text>
           </Column>
         </Row>
@@ -112,7 +111,7 @@ export function NewReviewNotificationEmail({
             <Text
               style={{ fontSize: 13, color: "#334155", fontWeight: 600, margin: 0 }}
             >
-              {d.eventTitle}
+              {data.eventTitle}
             </Text>
           </Column>
         </Row>
@@ -136,7 +135,7 @@ export function NewReviewNotificationEmail({
                 lineHeight: "24px",
               }}
             >
-              {renderStars(d.rating)}
+              {renderStars(data.rating)}
             </Text>
           </Column>
         </Row>
@@ -172,7 +171,7 @@ export function NewReviewNotificationEmail({
               fontStyle: "italic",
             }}
           >
-            &ldquo;{d.comment}&rdquo;
+            &ldquo;{data.comment}&rdquo;
           </Text>
         </Section>
       )}

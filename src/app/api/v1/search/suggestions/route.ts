@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { successResponse, errorResponse } from "@/lib/api-response";
 import { NextRequest } from "next/server";
 import { z } from "zod";
+import { logger } from "@/lib/logger";
 
 const suggestionsSchema = z.object({
   q: z.string({ message: "استعلام البحث مطلوب" }).min(2, { message: "يجب أن يكون الاستعلام حرفين على الأقل" }).max(100, { message: "يجب أن يكون الاستعلام أقل من 100 حرف" }),
@@ -57,7 +58,7 @@ export async function GET(request: NextRequest) {
 
     return successResponse(data, "تم جلب الاقتراحات");
   } catch (error: unknown) {
-    console.error("Error fetching suggestions:", error);
+    logger.error("suggestions", "Error fetching suggestions", error);
     return errorResponse(
       "INTERNAL_ERROR",
       "خطأ في جلب الاقتراحات",

@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { successResponse, errorResponse } from "@/lib/api-response";
-import { getCurrentUser } from "@/lib/clerk";
+import { getCurrentUser } from "@/lib/auth-server";
+import { logger } from "@/lib/logger";
 
 /**
  * PATCH /api/v1/notifications/:id/read — تعليم إشعار كمقروء
@@ -45,7 +46,7 @@ export async function PATCH(
       "تم تعليم الإشعار كمقروء"
     );
   } catch (error: unknown) {
-    console.error("Error marking notification as read:", error);
+    logger.error("notification-read", "Error marking notification as read", error);
     return errorResponse("INTERNAL_ERROR", "حدث خطأ في تعليم الإشعار", undefined, 500);
   }
 }

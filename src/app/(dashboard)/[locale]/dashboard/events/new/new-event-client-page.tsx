@@ -7,6 +7,7 @@ import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCreateEvent } from "@/hooks/use-event-mutations";
 import { createEventSchema, type CreateEventInput } from "@/lib/validators/event-schema";
+import { logger } from "@/lib/logger";
 import { useCategories } from "@/hooks/use-categories";
 import { ImageUploader } from "@/components/features/dashboard/image-uploader";
 import { TicketTierBuilder } from "@/components/features/dashboard/ticket-tier-builder";
@@ -91,7 +92,7 @@ export function NewEventClientPage() {
       await createEvent.mutateAsync(data);
       router.push(`/${locale}/dashboard/events`);
     } catch (error: unknown) {
-      console.error("Create event failed:", error);
+      logger.error("new-event", "Create event failed", error);
     }
   };
 

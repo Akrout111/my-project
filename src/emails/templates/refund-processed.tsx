@@ -21,14 +21,13 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://kuwaitevents.com";
 export function RefundProcessedEmail({
   data,
 }: {
-  data: Record<string, unknown>;
+  data: RefundProcessedData;
 }) {
-  const d = data as unknown as RefundProcessedData;
-  const appUrl = d.appUrl ?? APP_URL;
-  const hasReason = Boolean(d.reason);
+  const appUrl = data.appUrl ?? APP_URL;
+  const hasReason = Boolean(data.reason);
 
   return (
-    <EmailLayout previewText={`تم معالجة الاسترداد — حجز ${d.bookingNumber}`}>
+    <EmailLayout previewText={`تم معالجة الاسترداد — حجز ${data.bookingNumber}`}>
       {/* Title */}
       <Section style={{ textAlign: "center", marginBottom: 24 }}>
         <Text
@@ -48,7 +47,7 @@ export function RefundProcessedEmail({
             margin: "8px 0 0 0",
           }}
         >
-          مرحباً {d.attendeeName}، تمت معالجة طلب استرداد أموالك.
+          مرحباً {data.attendeeName}، تمت معالجة طلب استرداد أموالك.
         </Text>
       </Section>
 
@@ -87,7 +86,7 @@ export function RefundProcessedEmail({
             <Text
               style={{ fontSize: 13, color: "#14532d", fontWeight: 600, margin: 0, letterSpacing: "0.5px" }}
             >
-              {d.bookingNumber}
+              {data.bookingNumber}
             </Text>
           </Column>
         </Row>
@@ -104,7 +103,7 @@ export function RefundProcessedEmail({
             <Text
               style={{ fontSize: 18, color: "#166534", fontWeight: 700, margin: 0 }}
             >
-              {d.refundAmount} د.ك
+              {data.refundAmount} د.ك
             </Text>
           </Column>
         </Row>
@@ -122,7 +121,7 @@ export function RefundProcessedEmail({
               <Text
                 style={{ fontSize: 13, color: "#14532d", fontWeight: 600, margin: 0 }}
               >
-                {d.reason}
+                {data.reason}
               </Text>
             </Column>
           </Row>
@@ -140,7 +139,7 @@ export function RefundProcessedEmail({
             <Text
               style={{ fontSize: 13, color: "#14532d", fontWeight: 600, margin: 0 }}
             >
-              {d.refundTimeline ?? "خلال 5-10 أيام عمل"}
+              {data.refundTimeline ?? "خلال 5-10 أيام عمل"}
             </Text>
           </Column>
         </Row>

@@ -23,13 +23,12 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://kuwaitevents.com";
 export function EventReminderEmail({
   data,
 }: {
-  data: Record<string, unknown>;
+  data: EventReminderData;
 }) {
-  const d = data as unknown as EventReminderData;
-  const appUrl = d.appUrl ?? APP_URL;
+  const appUrl = data.appUrl ?? APP_URL;
 
   return (
-    <EmailLayout previewText={`تذكير بالفعالية: ${d.eventTitle}`}>
+    <EmailLayout previewText={`تذكير بالفعالية: ${data.eventTitle}`}>
       {/* Title */}
       <Section style={{ textAlign: "center", marginBottom: 24 }}>
         <Text
@@ -49,7 +48,7 @@ export function EventReminderEmail({
             margin: "8px 0 0 0",
           }}
         >
-          مرحباً {d.attendeeName}، الفعالية قريبة! لا تنسَ الحضور.
+          مرحباً {data.attendeeName}، الفعالية قريبة! لا تنسَ الحضور.
         </Text>
       </Section>
 
@@ -73,7 +72,7 @@ export function EventReminderEmail({
             margin: "0 0 16px 0",
           }}
         >
-          🎉 {d.eventTitle}
+          🎉 {data.eventTitle}
         </Text>
 
         <Row style={{ marginBottom: 8 }}>
@@ -88,7 +87,7 @@ export function EventReminderEmail({
             <Text
               style={{ fontSize: 13, color: "#1e3a5f", fontWeight: 600, margin: 0 }}
             >
-              {d.eventDate}
+              {data.eventDate}
             </Text>
           </Column>
         </Row>
@@ -105,7 +104,7 @@ export function EventReminderEmail({
             <Text
               style={{ fontSize: 13, color: "#1e3a5f", fontWeight: 600, margin: 0 }}
             >
-              {d.eventTime}
+              {data.eventTime}
             </Text>
           </Column>
         </Row>
@@ -122,7 +121,7 @@ export function EventReminderEmail({
             <Text
               style={{ fontSize: 13, color: "#1e3a5f", fontWeight: 600, margin: 0 }}
             >
-              {d.venueName}
+              {data.venueName}
             </Text>
           </Column>
         </Row>
@@ -164,7 +163,7 @@ export function EventReminderEmail({
       {/* CTA Button */}
       <Section style={{ textAlign: "center", marginBottom: 16 }}>
         <Button
-          href={`${appUrl}/ar/bookings/${d.bookingId}`}
+          href={`${appUrl}/ar/bookings/${data.bookingId}`}
           style={{
             backgroundColor: "#2563eb",
             color: "#ffffff",

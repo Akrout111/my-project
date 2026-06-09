@@ -1,6 +1,13 @@
+/**
+ * Shared authentication utilities for Kuwait Events Platform.
+ * Consolidates duplicated auth logic from clerk.ts, server-auth.ts, and admin-guard.ts.
+ */
+
 import { auth } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/auth";
+import { db } from "@/lib/db";
+import type { Prisma } from "@prisma/client";
 
 const AUTH_COOKIE_NAME = "auth_token";
 
@@ -33,4 +40,20 @@ export async function resolveUserId(): Promise<string | null> {
   return null;
 }
 
-export { AUTH_COOKIE_NAME };
+/**
+ * Find a user by either clerkId or id, ensuring the user is active and not soft-deleted.
+ * This consolidates the duplicated OR query across clerk.ts, server-auth.ts, and admin-guard.ts.
+ */
+export async function findUserByIdentifier(
+  userId: string,
+  select?: Prisma.UserSelect
+) {
+  return db.user.findFirst({
+    where: {
+      OR: [{ clerkId: userId }, { id: userId }],
+      isActive: true,
+      deletedAt: null,
+    },
+    select: select ?? undefined,
+  });
+}

@@ -1,5 +1,6 @@
 import { render } from "@react-email/components";
 import { sendEmail } from "@/lib/email";
+import { logger } from "@/lib/logger";
 
 interface SendTemplateEmailParams {
   to: string;
@@ -16,7 +17,7 @@ export async function sendTemplateEmail({
     const html = await render(template);
     return sendEmail({ to, subject, html });
   } catch (error: unknown) {
-    console.error("[Email Sender] Template rendering or sending error:", error);
+    logger.error("email-sender", "Template rendering or sending error", error);
     return false;
   }
 }

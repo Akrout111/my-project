@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { useValidateTicket } from "@/hooks/use-ticket-validation";
 import { QRScanner } from "@/components/features/dashboard/qr-scanner";
+import { logger } from "@/lib/logger";
 import { ManualEntry } from "@/components/features/dashboard/manual-entry";
 import { ValidationResult } from "@/components/features/dashboard/validation-result";
 import { RecentValidations } from "@/components/features/dashboard/recent-validations";
@@ -210,7 +211,7 @@ export function TicketScannerClientPage() {
                         onScan={handleQRScan}
                         isActive={scannerActive && !validationResult}
                         onError={(err) =>
-                          console.error("Scanner error:", err)
+                          logger.error("ticket-scanner", "Scanner error", err)
                         }
                       />
                     </CardContent>
