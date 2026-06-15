@@ -74,3 +74,13 @@ download/
 homepage-final.png
 homepage-screenshot.png
 screenshot-*.png
+DESIGN_ANALYSIS_FILE.tsx
+
+# Tool results / temp files
+tool-results/
+
+# Agent worklog
+worklog.md
+
+# Dev scripts
+.zscripts/
